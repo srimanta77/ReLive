@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 🌙 Main App Theme for Compose -->
+    <style name="Theme.ReLive" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Status bar and navigation bar colors -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+
+        <!-- Background for the app -->
+        <item name="android:windowBackground">@color/white</item>
+
+        <!-- This allows Compose Material 3 to manage color surfaces properly -->
+        <item name="android:forceDarkAllowed">true</item>
+    </style>
+
+    <!-- 🚀 Splash Screen Theme -->
+    <style name="Theme.ReLive.Splash" parent="Theme.ReLive">
+        <!-- Solid black background to match logo -->
+        <item name="android:windowBackground">@color/black</item>
+
+        <!-- Hide title and action bar -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+
+        <!-- Prevent white flicker between splash and activity -->
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+</resources>
