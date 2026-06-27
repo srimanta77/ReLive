@@ -1,6 +1,8 @@
 package `in`.srimantamondal.relive.ui
 
 import android.app.Application
+import android.content.Intent
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
@@ -13,37 +15,30 @@ import `in`.srimantamondal.relive.data.db.ReLiveDatabase
 import `in`.srimantamondal.relive.data.db.ReLiveDao
 import `in`.srimantamondal.relive.data.model.ActivityRecord
 import `in`.srimantamondal.relive.security.PasswordManager
+import `in`.srimantamondal.relive.parent.ParentModeService
 
-// DataStore delegate for Application
 private val Application.dataStore by preferencesDataStore(name = "relive_prefs")
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-    // DataStore key for parent mode flag (not sensitive)
-    private val PARENT_MODE_KEY = booleanPreferencesKey("parent_mode_enabled")
+    private val parentModeKey = booleanPreferencesKey("parent_mode_enabled")
 
-    // DB / DAO
     private val db: ReLiveDatabase = ReLiveDatabase.getInstance(application)
     private val dao: ReLiveDao = db.reliveDao()
 
-    // Activities flow -> expose as StateFlow for Compose
     val activities: StateFlow<List<ActivityRecord>> =
         dao.getAllActivities()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    // Parent mode boolean stored in DataStore
     val parentMode: StateFlow<Boolean> = application.dataStore.data
-        .map { prefs -> prefs[PARENT_MODE_KEY] ?: false }
+        .map { prefs -> prefs[parentModeKey] ?: false }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    // Password manager (EncryptedSharedPreferences)
     private val passwordManager = PasswordManager(application.applicationContext)
 
-    // Cached boolean whether password exists; used for quick checks in UI
     private val _passwordExists = MutableStateFlow(passwordManager.hasPassword())
     val passwordExists: StateFlow<Boolean> = _passwordExists.asStateFlow()
 
-    // UI events for snackbars/navigation
     private val _uiEvents = MutableSharedFlow<UiEvent>(
         replay = 0,
         extraBufferCapacity = 4,
@@ -93,58 +88,71 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onActivityClicked(activity: ActivityRecord) {
-        viewModelScope.launch { _uiEvents.emit(UiEvent.Message("Clicked: ${activity.title}")) }
+        viewModelScope.launch {
+            _uiEvents.emit(UiEvent.Message("Clicked: ${activity.title}"))
+        }
     }
 
     fun showTip(message: String) {
-        viewModelScope.launch { _uiEvents.emit(UiEvent.Message(message)) }
+        viewModelScope.launch {
+            _uiEvents.emit(UiEvent.Message(message))
+        }
     }
 
-    // ---------------- Parent-mode & password ----------------
+    // ---------------- Parent Mode & Password ----------------
 
-    /**
-     * Synchronous helper: returns true if a parent password exists.
-     */
     fun hasParentPassword(): Boolean = passwordManager.hasPassword()
 
-    /**
-     * Save a parent password (EncryptedSharedPreferences) and update cached state.
-     */
     fun setParentPassword(plainPassword: String) {
         passwordManager.savePassword(plainPassword)
         _passwordExists.value = true
-        viewModelScope.launch { _uiEvents.emit(UiEvent.Message("Parent password saved")) }
+        viewModelScope.launch {
+            _uiEvents.emit(UiEvent.Message("Parent password saved"))
+        }
     }
 
-    /**
-     * Verify a plain password against stored hash (sync, uses EncryptedSharedPrefs).
-     */
     fun verifyParentPassword(plainPassword: String): Boolean {
         return passwordManager.verify(plainPassword)
     }
 
-    /**
-     * Clear stored password and update cache.
-     */
     fun clearParentPassword() {
         passwordManager.clearPassword()
         _passwordExists.value = false
-        viewModelScope.launch { _uiEvents.emit(UiEvent.Message("Parent password cleared")) }
-    }
-
-    /**
-     * Toggle parent mode flag stored in DataStore.
-     */
-    fun setParentMode(enabled: Boolean) {
         viewModelScope.launch {
-            getApplication<Application>().dataStore.edit { prefs ->
-                prefs[PARENT_MODE_KEY] = enabled
-            }
-            _uiEvents.emit(UiEvent.Message(if (enabled) "Parent mode enabled" else "Parent mode disabled"))
+            _uiEvents.emit(UiEvent.Message("Parent password cleared"))
         }
     }
 
-    // UI events sealed
+    fun setParentMode(enabled: Boolean) {
+        viewModelScope.launch {
+            getApplication<Application>().dataStore.edit { prefs ->
+                prefs[parentModeKey] = enabled
+            }
+
+            val context = getApplication<Application>()
+            val intent = Intent(context, ParentModeService::class.java).apply {
+                action = if (enabled) ParentModeService.ACTION_START
+                else ParentModeService.ACTION_STOP
+            }
+
+            if (enabled) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } else {
+                context.stopService(intent)
+            }
+
+            _uiEvents.emit(
+                UiEvent.Message(
+                    if (enabled) "Parent mode enabled" else "Parent mode disabled"
+                )
+            )
+        }
+    }
+
     sealed class UiEvent {
         data class Message(val text: String) : UiEvent()
         data class Navigate(val route: String) : UiEvent()
