@@ -1,5 +1,6 @@
 package `in`.srimantamondal.relive.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,90 +11,167 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import `in`.srimantamondal.relive.ui.HomeViewModel
-import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
 import `in`.srimantamondal.relive.data.model.ActivityRecord
+import `in`.srimantamondal.relive.ui.HomeViewModel
+import `in`.srimantamondal.relive.ui.UsageStatsHelper
+import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
 import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
+
+// Brand Colors
+private val NavyBg = Color(0xFF0B132B)
+private val CardBg = Color(0xFF1C2541)
+private val PurpleAccent = Color(0xFF7C4DFF)
+private val TextPrimary = Color(0xFFEEEEEE)
+private val TextSecondary = Color(0xFFB0BEC5)
+private val DividerColor = Color(0xFF2A2A3E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
-    // collect flows from VM into Compose state
     val activities by viewModel.activities.collectAsState(initial = emptyList())
     val parentMode by viewModel.parentMode.collectAsState(initial = false)
     val passwordExists by viewModel.passwordExists.collectAsState()
+    val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // bottom sheet / dialog states
     var showAddSheet by remember { mutableStateOf(false) }
     var showSetPasswordDialog by remember { mutableStateOf(false) }
     var showEnterPasswordDialog by remember { mutableStateOf(false) }
-
-    // temp state for password entry
+    var showSettingsScreen by remember { mutableStateOf(false) }
+    var showUsageStatsDialog by remember { mutableStateOf(false) }
     var tempPassword by remember { mutableStateOf("") }
     var tempPasswordConfirm by remember { mutableStateOf("") }
-
-    // desiredParentMode tracks the UI toggle target while dialogs operate
     var desiredParentMode by remember { mutableStateOf<Boolean?>(null) }
 
-    // Collect simple UI messages from ViewModel
     LaunchedEffect(Unit) {
         viewModel.uiEvents.collect { event ->
             when (event) {
-                is HomeViewModel.UiEvent.Message -> {
+                is HomeViewModel.UiEvent.Message ->
                     snackbarHostState.showSnackbar(event.text)
-                }
                 else -> {}
             }
         }
     }
 
+    // Show Settings Screen
+    if (showSettingsScreen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(NavyBg)
+        ) {
+            ParentModeSettingsScreen(
+                viewModel = viewModel,
+                onBack = { showSettingsScreen = false }
+            )
+            // Back button
+            TextButton(
+                onClick = { showSettingsScreen = false },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 16.dp, start = 8.dp)
+            ) {
+                Text("← Back", color = PurpleAccent)
+            }
+        }
+        return
+    }
+
     Scaffold(
+        containerColor = NavyBg,
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("ReLive", style = MaterialTheme.typography.titleLarge) })
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "ReLive",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { showSettingsScreen = true }) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = PurpleAccent
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = NavyBg
+                )
+            )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddSheet = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+            FloatingActionButton(
+                onClick = { showAddSheet = true },
+                containerColor = PurpleAccent
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
             }
         },
         bottomBar = {
             var selectedTab by remember { mutableStateOf(0) }
-            NavigationBar {
+            NavigationBar(containerColor = Color(0xFF1C2541)) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
+                    label = { Text("Home") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PurpleAccent,
+                        selectedTextColor = PurpleAccent,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = Color(0xFF2A2A3E)
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     icon = { Icon(Icons.Default.Favorite, contentDescription = "Commit") },
-                    label = { Text("Commit") }
+                    label = { Text("Commit") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PurpleAccent,
+                        selectedTextColor = PurpleAccent,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = Color(0xFF2A2A3E)
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
                     icon = { Icon(Icons.Default.Spa, contentDescription = "Wellness") },
-                    label = { Text("Wellness") }
+                    label = { Text("Wellness") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PurpleAccent,
+                        selectedTextColor = PurpleAccent,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = Color(0xFF2A2A3E)
+                    )
                 )
             }
         },
@@ -102,42 +180,78 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter
+                .background(NavyBg)
+                .padding(innerPadding)
         ) {
             HomeTab(
                 activities = activities,
                 parentMode = parentMode,
                 onActivityClicked = { activity -> viewModel.onActivityClicked(activity) },
                 onToggleParentMode = { enabled ->
-                    // when user toggles the UI switch:
                     desiredParentMode = enabled
                     if (enabled) {
-                        // enabling: if no password exists -> ask to set password first
                         if (!viewModel.hasParentPassword()) {
                             tempPassword = ""
                             tempPasswordConfirm = ""
                             showSetPasswordDialog = true
                         } else {
-                            viewModel.setParentMode(true)
+                            // Check Usage Stats permission
+                            if (!UsageStatsHelper.hasUsageStatsPermission(context)) {
+                                showUsageStatsDialog = true
+                            } else {
+                                viewModel.setParentMode(true)
+                            }
                         }
                     } else {
-                        // disabling -> ask for password verification
                         tempPassword = ""
                         showEnterPasswordDialog = true
                     }
                 },
                 onAddActivity = { title, notes ->
                     viewModel.addActivity(title, notes)
-                    scope.launch { snackbarHostState.showSnackbar("Activity added") }
                 }
             )
         }
 
-        // Add Activity bottom sheet
+        // Usage Stats Permission Dialog
+        if (showUsageStatsDialog) {
+            AlertDialog(
+                onDismissRequest = { showUsageStatsDialog = false },
+                containerColor = CardBg,
+                title = {
+                    Text("Permission Required", color = TextPrimary, fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Text(
+                        "ReLive needs Usage Access permission to monitor app usage and protect your device.",
+                        color = TextSecondary
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showUsageStatsDialog = false
+                        UsageStatsHelper.openUsageAccessSettings(context)
+                        viewModel.setParentMode(true)
+                    }) {
+                        Text("Grant Permission", color = PurpleAccent)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showUsageStatsDialog = false
+                        viewModel.setParentMode(true)
+                    }) {
+                        Text("Skip", color = TextSecondary)
+                    }
+                }
+            )
+        }
+
+        // Add Activity Bottom Sheet
         if (showAddSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showAddSheet = false }
+                onDismissRequest = { showAddSheet = false },
+                containerColor = CardBg
             ) {
                 AddActivityBottomSheet(
                     onCancel = { showAddSheet = false },
@@ -150,35 +264,49 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
             }
         }
 
-        // Set Password Dialog (shown when enabling parent mode first time)
+        // Set Password Dialog
         if (showSetPasswordDialog) {
             AlertDialog(
                 onDismissRequest = { showSetPasswordDialog = false },
-                title = { Text("Set Parent Mode Password") },
+                containerColor = CardBg,
+                title = {
+                    Text("Set Parent Password", color = TextPrimary, fontWeight = FontWeight.Bold)
+                },
                 text = {
                     Column {
                         OutlinedTextField(
                             value = tempPassword,
                             onValueChange = { tempPassword = it },
-                            label = { Text("Password") },
+                            label = { Text("Password", color = TextSecondary) },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = PurpleAccent,
+                                unfocusedBorderColor = DividerColor,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            )
                         )
                         Spacer(Modifier.height(8.dp))
                         OutlinedTextField(
                             value = tempPasswordConfirm,
                             onValueChange = { tempPasswordConfirm = it },
-                            label = { Text("Confirm Password") },
+                            label = { Text("Confirm Password", color = TextSecondary) },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = PurpleAccent,
+                                unfocusedBorderColor = DividerColor,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            )
                         )
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        // validate
                         if (tempPassword.isBlank()) {
                             scope.launch { snackbarHostState.showSnackbar("Password cannot be empty") }
                             return@TextButton
@@ -187,71 +315,72 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                             scope.launch { snackbarHostState.showSnackbar("Passwords do not match") }
                             return@TextButton
                         }
-                        // save password and enable parent mode
                         viewModel.setParentPassword(tempPassword)
                         viewModel.setParentMode(true)
                         showSetPasswordDialog = false
                         desiredParentMode = null
                         tempPassword = ""
                         tempPasswordConfirm = ""
-                        scope.launch { snackbarHostState.showSnackbar("Parent Mode enabled") }
                     }) {
-                        Text("Set & Enable")
+                        Text("Set & Enable", color = PurpleAccent)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
-                        // cancel -> do nothing (leave switch unchanged)
                         showSetPasswordDialog = false
                         desiredParentMode = null
                     }) {
-                        Text("Cancel")
+                        Text("Cancel", color = TextSecondary)
                     }
                 }
             )
         }
 
-        // Enter Password Dialog (shown when disabling parent mode)
+        // Enter Password Dialog
         if (showEnterPasswordDialog) {
             AlertDialog(
                 onDismissRequest = { showEnterPasswordDialog = false },
-                title = { Text("Enter Parent Password") },
+                containerColor = CardBg,
+                title = {
+                    Text("Enter Parent Password", color = TextPrimary, fontWeight = FontWeight.Bold)
+                },
                 text = {
-                    Column {
-                        OutlinedTextField(
-                            value = tempPassword,
-                            onValueChange = { tempPassword = it },
-                            label = { Text("Password") },
-                            singleLine = true,
-                            visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth()
+                    OutlinedTextField(
+                        value = tempPassword,
+                        onValueChange = { tempPassword = it },
+                        label = { Text("Password", color = TextSecondary) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PurpleAccent,
+                            unfocusedBorderColor = DividerColor,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
                         )
-                    }
+                    )
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        val ok = viewModel.verifyParentPassword(tempPassword)
-                        if (ok) {
+                        if (viewModel.verifyParentPassword(tempPassword)) {
                             viewModel.setParentMode(false)
                             showEnterPasswordDialog = false
                             desiredParentMode = null
                             tempPassword = ""
-                            scope.launch { snackbarHostState.showSnackbar("Parent Mode disabled") }
                         } else {
                             scope.launch { snackbarHostState.showSnackbar("Incorrect password") }
                         }
                     }) {
-                        Text("Unlock")
+                        Text("Unlock", color = PurpleAccent)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
-                        // Cancel -> keep parent mode ON (do not change)
                         showEnterPasswordDialog = false
                         desiredParentMode = null
                         tempPassword = ""
                     }) {
-                        Text("Cancel")
+                        Text("Cancel", color = TextSecondary)
                     }
                 }
             )
@@ -259,7 +388,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTab(
     activities: List<ActivityRecord>,
@@ -268,43 +396,89 @@ fun HomeTab(
     onToggleParentMode: (Boolean) -> Unit,
     onAddActivity: (title: String, notes: String?) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NavyBg),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.height(12.dp))
-        Text("Welcome to ReLive", style = MaterialTheme.typography.titleLarge)
+        Text(
+            "Welcome to ReLive",
+            style = MaterialTheme.typography.titleLarge,
+            color = TextPrimary,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(modifier = Modifier.height(4.dp))
-        Text("Your Digital Wellbeing Assistant", style = MaterialTheme.typography.bodyMedium)
-        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "Your Digital Wellbeing Assistant",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Parent mode toggle
-        Row(
+        // Parent Mode Card
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            colors = CardDefaults.cardColors(containerColor = CardBg),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Parent Mode", style = MaterialTheme.typography.bodyLarge)
-             Switch(checked = parentMode, onCheckedChange = onToggleParentMode)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Add button row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TextButton(onClick = { onAddActivity("Untitled", null) }) {
-                Text("Add activity")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Parent Mode",
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+                Switch(
+                    checked = parentMode,
+                    onCheckedChange = onToggleParentMode,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = PurpleAccent,
+                        uncheckedThumbColor = TextSecondary,
+                        uncheckedTrackColor = DividerColor
+                    )
+                )
             }
         }
 
-        // Activities list
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Activities header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Activities",
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+            TextButton(onClick = { onAddActivity("Untitled", null) }) {
+                Text("+ Add", color = PurpleAccent)
+            }
+        }
+
         if (activities.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No activities yet — tap + to add", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "No activities yet — tap + to add",
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         } else {
             LazyColumn(
@@ -326,33 +500,43 @@ fun HomeTab(
 fun ActivityItem(activity: ActivityRecord, onClick: () -> Unit) {
     val dateText = remember(activity.timestamp) {
         try {
-            val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            formatter.format(Date(activity.timestamp))
-        } catch (e: Exception) {
-            ""
-        }
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                .format(Date(activity.timestamp))
+        } catch (e: Exception) { "" }
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .background(Color.White)
-                .padding(12.dp)
-        ) {
-            Text(activity.title.ifEmpty { "Untitled" }, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(activity.notes ?: "", style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("Recorded:", style = MaterialTheme.typography.bodySmall)
-                Text(dateText, style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                activity.title.ifEmpty { "Untitled" },
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (!activity.notes.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    activity.notes,
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                dateText,
+                color = TextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -365,20 +549,32 @@ fun AddActivityBottomSheet(
 ) {
     var title by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    val canSave = title.isNotBlank()
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CardBg)
+            .padding(16.dp)
     ) {
-        Text("Add Activity", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Add Activity",
+            style = MaterialTheme.typography.titleLarge,
+            color = TextPrimary,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Title", color = TextSecondary) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PurpleAccent,
+                unfocusedBorderColor = DividerColor,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -386,10 +582,16 @@ fun AddActivityBottomSheet(
         OutlinedTextField(
             value = notes,
             onValueChange = { notes = it },
-            label = { Text("Notes (optional)") },
+            label = { Text("Notes (optional)", color = TextSecondary) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
+                .height(120.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PurpleAccent,
+                unfocusedBorderColor = DividerColor,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -399,16 +601,19 @@ fun AddActivityBottomSheet(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text("Cancel", color = TextSecondary)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { onSave(title.trim(), notes.trim().ifEmpty { null }) }, enabled = canSave) {
-                Text("Save")
+            Button(
+                onClick = { onSave(title.trim(), notes.trim().ifEmpty { null }) },
+                enabled = title.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = PurpleAccent)
+            ) {
+                Text("Save", color = Color.White)
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -416,7 +621,12 @@ fun HomePreview() {
     ReLiveTheme {
         HomeTab(
             activities = listOf(
-                ActivityRecord(id = 1L, title = "Walk", notes = "Morning walk", timestamp = System.currentTimeMillis())
+                ActivityRecord(
+                    id = 1L,
+                    title = "Walk",
+                    notes = "Morning walk",
+                    timestamp = System.currentTimeMillis()
+                )
             ),
             parentMode = false,
             onActivityClicked = {},
