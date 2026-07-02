@@ -1,6 +1,5 @@
 package `in`.srimantamondal.relive.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -54,6 +53,9 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // selectedTab bahar hai taaki Box mein use ho sake
+    var selectedTab by remember { mutableStateOf(0) }
+
     var showAddSheet by remember { mutableStateOf(false) }
     var showSetPasswordDialog by remember { mutableStateOf(false) }
     var showEnterPasswordDialog by remember { mutableStateOf(false) }
@@ -84,7 +86,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                 viewModel = viewModel,
                 onBack = { showSettingsScreen = false }
             )
-            // Back button
             TextButton(
                 onClick = { showSettingsScreen = false },
                 modifier = Modifier
@@ -124,15 +125,16 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddSheet = true },
-                containerColor = PurpleAccent
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+            if (selectedTab == 0) {
+                FloatingActionButton(
+                    onClick = { showAddSheet = true },
+                    containerColor = PurpleAccent
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                }
             }
         },
         bottomBar = {
-            var selectedTab by remember { mutableStateOf(0) }
             NavigationBar(containerColor = Color(0xFF1C2541)) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
@@ -183,34 +185,48 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                 .background(NavyBg)
                 .padding(innerPadding)
         ) {
-            HomeTab(
-                activities = activities,
-                parentMode = parentMode,
-                onActivityClicked = { activity -> viewModel.onActivityClicked(activity) },
-                onToggleParentMode = { enabled ->
-                    desiredParentMode = enabled
-                    if (enabled) {
-                        if (!viewModel.hasParentPassword()) {
-                            tempPassword = ""
-                            tempPasswordConfirm = ""
-                            showSetPasswordDialog = true
-                        } else {
-                            // Check Usage Stats permission
-                            if (!UsageStatsHelper.hasUsageStatsPermission(context)) {
-                                showUsageStatsDialog = true
+            when (selectedTab) {
+                0 -> HomeTab(
+                    activities = activities,
+                    parentMode = parentMode,
+                    onActivityClicked = { activity -> viewModel.onActivityClicked(activity) },
+                    onToggleParentMode = { enabled ->
+                        desiredParentMode = enabled
+                        if (enabled) {
+                            if (!viewModel.hasParentPassword()) {
+                                tempPassword = ""
+                                tempPasswordConfirm = ""
+                                showSetPasswordDialog = true
                             } else {
-                                viewModel.setParentMode(true)
+                                if (!UsageStatsHelper.hasUsageStatsPermission(context)) {
+                                    showUsageStatsDialog = true
+                                } else {
+                                    viewModel.setParentMode(true)
+                                }
                             }
+                        } else {
+                            tempPassword = ""
+                            showEnterPasswordDialog = true
                         }
-                    } else {
-                        tempPassword = ""
-                        showEnterPasswordDialog = true
+                    },
+                    onAddActivity = { title, notes ->
+                        viewModel.addActivity(title, notes)
                     }
-                },
-                onAddActivity = { title, notes ->
-                    viewModel.addActivity(title, notes)
+                )
+                1 -> Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(NavyBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Commit — Coming Soon",
+                        color = TextSecondary,
+                        fontSize = 16.sp
+                    )
                 }
-            )
+                2 -> UsageDashboardScreen()
+            }
         }
 
         // Usage Stats Permission Dialog
@@ -417,7 +433,6 @@ fun HomeTab(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Parent Mode Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -453,7 +468,6 @@ fun HomeTab(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Activities header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
