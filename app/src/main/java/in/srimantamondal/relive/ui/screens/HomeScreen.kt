@@ -53,9 +53,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // selectedTab bahar hai taaki Box mein use ho sake
     var selectedTab by remember { mutableStateOf(0) }
-
     var showAddSheet by remember { mutableStateOf(false) }
     var showSetPasswordDialog by remember { mutableStateOf(false) }
     var showEnterPasswordDialog by remember { mutableStateOf(false) }
@@ -75,7 +73,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         }
     }
 
-    // Show Settings Screen
     if (showSettingsScreen) {
         Box(
             modifier = Modifier
@@ -225,7 +222,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         fontSize = 16.sp
                     )
                 }
-                2 -> UsageDashboardScreen()
+                2 -> WellnessTabScreen()
             }
         }
 
@@ -400,6 +397,63 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun WellnessTabScreen() {
+    var selectedWellnessTab by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NavyBg)
+    ) {
+        TabRow(
+            selectedTabIndex = selectedWellnessTab,
+            containerColor = Color(0xFF1C2541),
+            contentColor = PurpleAccent
+        ) {
+            Tab(
+                selected = selectedWellnessTab == 0,
+                onClick = { selectedWellnessTab = 0 },
+                text = {
+                    Text(
+                        "Dashboard",
+                        color = if (selectedWellnessTab == 0) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedWellnessTab == 1,
+                onClick = { selectedWellnessTab = 1 },
+                text = {
+                    Text(
+                        "Daily",
+                        color = if (selectedWellnessTab == 1) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedWellnessTab == 2,
+                onClick = { selectedWellnessTab = 2 },
+                text = {
+                    Text(
+                        "Weekly",
+                        color = if (selectedWellnessTab == 2) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
+        }
+
+        when (selectedWellnessTab) {
+            0 -> UsageDashboardScreen()
+            1 -> DailyReportScreen()
+            2 -> WeeklyReportScreen()
         }
     }
 }

@@ -1,6 +1,5 @@
 package `in`.srimantamondal.relive.data.usage
 
-import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import java.util.Calendar
@@ -8,20 +7,16 @@ import java.util.Calendar
 data class AppUsageInfo(
     val packageName: String,
     val appName: String,
-    val totalTimeInForeground: Long, // milliseconds
+    val totalTimeInForeground: Long,
     val lastTimeUsed: Long
 )
 
 class AppUsageManager(private val context: Context) {
 
-    /**
-     * Aaj ka usage data fetch karo
-     */
     fun getTodayUsageStats(): List<AppUsageInfo> {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE)
                 as UsageStatsManager
 
-        // Aaj ka start time (midnight se)
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -45,11 +40,19 @@ class AppUsageManager(private val context: Context) {
             .filter { it.totalTimeInForeground > 0 }
             .map { stats ->
                 val appName = try {
-                    packageManager.getApplicationLabel(
-                        packageManager.getApplicationInfo(stats.packageName, 0)
-                    ).toString()
+                    val appInfo = packageManager.getApplicationInfo(
+                        stats.packageName,
+                        android.content.pm.PackageManager.GET_META_DATA
+                    )
+                    packageManager.getApplicationLabel(appInfo).toString()
                 } catch (e: Exception) {
+                    // Package name se readable naam banao
+                    // e.g. com.instagram.android -> Instagram
                     stats.packageName
+                        .split(".")
+                        .lastOrNull()
+                        ?.replaceFirstChar { it.uppercase() }
+                        ?: stats.packageName
                 }
                 AppUsageInfo(
                     packageName = stats.packageName,
@@ -61,17 +64,10 @@ class AppUsageManager(private val context: Context) {
             .sortedByDescending { it.totalTimeInForeground }
     }
 
-    /**
-     * Total screen time aaj ka — milliseconds mein
-     */
     fun getTotalScreenTimeToday(): Long {
         return getTodayUsageStats().sumOf { it.totalTimeInForeground }
     }
 
-    /**
-     * Milliseconds ko readable format mein convert karo
-     * e.g. 3661000 -> "1h 1m"
-     */
     fun formatDuration(millis: Long): String {
         val seconds = millis / 1000
         val minutes = seconds / 60
