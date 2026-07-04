@@ -20,12 +20,13 @@ import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
 class MainActivity : ComponentActivity() {
 
     private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            // Permission granted or denied — app continues either way
-        }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Status bar dark karo
+        window.statusBarColor = android.graphics.Color.parseColor("#0B132B")
 
         // Ask notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

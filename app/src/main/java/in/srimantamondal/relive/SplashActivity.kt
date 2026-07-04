@@ -3,6 +3,7 @@ package `in`.srimantamondal.relive
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
@@ -21,12 +22,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
-import `in`.srimantamondal.relive.MainActivity
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Status bar dark karo
+        window.statusBarColor = android.graphics.Color.parseColor("#0B132B")
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility = 0
+
         setContent {
             ReLiveTheme {
                 SplashScreen(
@@ -77,7 +83,7 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF0B132B) // Dark navy background
+        color = Color(0xFF0B132B)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
