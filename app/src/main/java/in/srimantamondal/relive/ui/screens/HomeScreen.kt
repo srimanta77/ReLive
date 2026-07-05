@@ -422,7 +422,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Dashboard",
                         color = if (selectedWellnessTab == 0) PurpleAccent else TextSecondary,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -433,7 +433,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Daily",
                         color = if (selectedWellnessTab == 1) PurpleAccent else TextSecondary,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -444,7 +444,18 @@ fun WellnessTabScreen() {
                     Text(
                         "Weekly",
                         color = if (selectedWellnessTab == 2) PurpleAccent else TextSecondary,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedWellnessTab == 3,
+                onClick = { selectedWellnessTab = 3 },
+                text = {
+                    Text(
+                        "Limits",
+                        color = if (selectedWellnessTab == 3) PurpleAccent else TextSecondary,
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -454,6 +465,7 @@ fun WellnessTabScreen() {
             0 -> UsageDashboardScreen()
             1 -> DailyReportScreen()
             2 -> WeeklyReportScreen()
+            3 -> ScreenTimeLimitScreen()
         }
     }
 }

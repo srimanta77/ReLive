@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
-    // APPLY the Compose Compiler plugin here (required for Kotlin 2.0+)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -20,8 +19,12 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -62,14 +65,9 @@ dependencies {
 
     implementation(libs.material)
     implementation(libs.androidx.material.icons.extended)
-    // ViewModel support for Jetpack Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-    // Lifecycle Runtime Compose for collectAsStateWithLifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
-
-    // save encrypted password for parent mode
     implementation("androidx.security:security-crypto:1.1.0")
-
 
     // Room
     implementation(libs.androidx.room.runtime)
