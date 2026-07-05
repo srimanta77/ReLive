@@ -6,6 +6,7 @@
 ![Language](https://img.shields.io/badge/Language-Kotlin-purple?style=flat-square&logo=kotlin)
 ![Architecture](https://img.shields.io/badge/Architecture-MVVM-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
+![Phase](https://img.shields.io/badge/Phase-3%20Complete-brightgreen?style=flat-square)
 
 ---
 
@@ -13,28 +14,43 @@
 
 ReLive is an AI-powered **Digital Wellbeing ecosystem** for Android that helps users:
 
-- 📊 Track and manage **screen time**
+- 📊 Track and manage **screen time** with real-time dashboard
 - 👨‍👩‍👧 Enable **parental controls** with password protection
-- 🔒 Block distracting apps during **focus/study/work modes**
-- 🧘 Build healthier habits through **AI coaching**
-- 💧 Track **health metrics** — water intake, sleep, mood, exercise
-- 🚨 Enable **emergency protection** features
+- ⏱️ Set **daily screen time limits** with alerts
+- 📈 View **daily and weekly usage reports** with charts
+- 🔒 Block distracting apps during **focus/study/work modes** *(coming soon)*
+- 🧘 Build healthier habits through **AI coaching** *(coming soon)*
+- 💧 Track **health metrics** — water intake, sleep, mood *(coming soon)*
 
 Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link — combined into one intelligent platform.
 
 ---
 
-## ✨ Current Features (Phase 2)
+## ✨ Current Features (Phase 3 Complete)
 
-- ✅ Splash screen with animated logo and glow effect
-- ✅ Home screen with Material 3 dark theme
-- ✅ Activity tracking system (add, view, delete)
-- ✅ Parent Mode with SHA-256 password protection
-- ✅ Foreground Service with persistent notification
-- ✅ Encrypted password storage (EncryptedSharedPreferences)
-- ✅ Room database with DAO and Repository pattern
-- ✅ DataStore for lightweight preferences
-- ✅ Bottom navigation (Home, Commit, Wellness)
+### 🏠 Home Screen
+- Material 3 dark navy theme
+- Parent Mode toggle with password protection
+- Activity tracking system (add, view)
+- Settings access via gear icon
+
+### 🛡️ Parent Mode
+- SHA-256 password hashing
+- Foreground Service with persistent notification
+- Encrypted password storage (EncryptedSharedPreferences)
+- Password change via Settings screen
+
+### 📊 Wellness Dashboard
+- **Dashboard tab** — Real-time today's screen time + app usage list
+- **Daily tab** — Full daily report with most used app, app count, progress bars
+- **Weekly tab** — 7-day bar chart, total week time, daily average
+- **Limits tab** — Set daily screen time goals (1h/2h/3h/4h), limit exceeded alerts
+
+### 🔧 Technical
+- Foreground Service with persistent notification
+- ProGuard/R8 code obfuscation for release builds
+- Usage Stats permission flow
+- Dark status bar integration
 
 ---
 
@@ -47,12 +63,12 @@ ViewModel (StateFlow + SharedFlow)
         ↓
 Repository
         ↓
-Room Database (SQLite)
+Room Database (SQLite) + DataStore
 ```
 
 **Pattern:** MVVM (Model-View-ViewModel)  
 **Async:** Kotlin Coroutines + Flow  
-**DI:** Manual (Firebase/Hilt planned for later phases)
+**Security:** EncryptedSharedPreferences + ProGuard
 
 ---
 
@@ -63,13 +79,16 @@ app/src/main/java/in/srimantamondal/relive/
 │
 ├── data/
 │   ├── db/          → Room Database, DAO
-│   ├── model/       → Data classes (ActivityRecord)
-│   └── repository/  → ReLiveRepository
+│   ├── model/       → ActivityRecord
+│   ├── repository/  → ReLiveRepository
+│   └── usage/       → AppUsageManager, ScreenTimeLimitManager
 │
 ├── ui/
-│   ├── screens/     → HomeScreen.kt
+│   ├── screens/     → HomeScreen, UsageDashboard, DailyReport,
+│   │                   WeeklyReport, ScreenTimeLimit, ParentModeSettings
 │   ├── theme/       → Material 3 colors, typography
-│   └── HomeViewModel.kt
+│   ├── HomeViewModel.kt
+│   └── UsageStatsHelper.kt
 │
 ├── security/
 │   └── PasswordManager.kt   → EncryptedSharedPreferences
@@ -88,9 +107,9 @@ app/src/main/java/in/srimantamondal/relive/
 | Phase | Feature | Status |
 |-------|---------|--------|
 | Phase 1 | Foundation, MVVM, Room, DataStore, Splash, Navigation | ✅ Complete |
-| Phase 2 | Parent Mode, Foreground Service, Security | 🔄 In Progress |
-| Phase 3 | Usage Tracking Engine, Screen Time, Daily Reports | 🔜 Next |
-| Phase 4 | App Blocking, Focus Mode, Study Mode, AI Suggestions | 📋 Planned |
+| Phase 2 | Parent Mode, Foreground Service, Security, Settings | ✅ Complete |
+| Phase 3 | Usage Tracking, Screen Time Dashboard, Daily/Weekly Reports, Limits | ✅ Complete |
+| Phase 4 | App Blocking, Focus Mode, Study Mode, AI Suggestions | 🔜 Next |
 | Phase 5 | Health System, Water, Sleep, Mood, Fitness | 📋 Planned |
 | Phase 6 | AI Coach, AI Therapist, AI Motivation | 📋 Planned |
 | Phase 7 | Firebase, Cloud Backup, Cross-device Sync | 📋 Planned |
@@ -107,9 +126,10 @@ app/src/main/java/in/srimantamondal/relive/
 | Architecture | MVVM |
 | Database | Room (SQLite) |
 | Preferences | DataStore |
-| Security | EncryptedSharedPreferences, SHA-256 |
+| Security | EncryptedSharedPreferences, SHA-256, ProGuard |
 | Async | Coroutines + Flow |
 | Service | Android Foreground Service |
+| Usage Tracking | Android UsageStatsManager |
 | Future | Firebase, AI APIs |
 
 ---
@@ -130,6 +150,11 @@ cd ReLive
 # Open in Android Studio and run on device/emulator
 ```
 
+### Permissions Required
+- `FOREGROUND_SERVICE` — Parent Mode background service
+- `POST_NOTIFICATIONS` — Parent Mode notification (Android 13+)
+- `PACKAGE_USAGE_STATS` — Screen time tracking (manual grant required)
+
 ---
 
 ## 👨‍💻 Developer
@@ -145,5 +170,5 @@ Cybersecurity Researcher | Android Developer | Entrepreneur
 
 ## 📄 License
 
-This project is currently private and under active development.  
+This project is under active development.  
 © 2026 Srimanta Mondal. All rights reserved.
