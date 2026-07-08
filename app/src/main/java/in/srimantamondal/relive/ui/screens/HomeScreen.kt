@@ -210,18 +210,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         viewModel.addActivity(title, notes)
                     }
                 )
-                1 -> Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(NavyBg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Commit — Coming Soon",
-                        color = TextSecondary,
-                        fontSize = 16.sp
-                    )
-                }
+                1 -> CommitTabScreen()
                 2 -> WellnessTabScreen()
             }
         }
@@ -397,6 +386,51 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun CommitTabScreen() {
+    var selectedCommitTab by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NavyBg)
+    ) {
+        TabRow(
+            selectedTabIndex = selectedCommitTab,
+            containerColor = Color(0xFF1C2541),
+            contentColor = PurpleAccent
+        ) {
+            Tab(
+                selected = selectedCommitTab == 0,
+                onClick = { selectedCommitTab = 0 },
+                text = {
+                    Text(
+                        "Focus",
+                        color = if (selectedCommitTab == 0) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedCommitTab == 1,
+                onClick = { selectedCommitTab = 1 },
+                text = {
+                    Text(
+                        "Study",
+                        color = if (selectedCommitTab == 1) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
+        }
+
+        when (selectedCommitTab) {
+            0 -> FocusModeScreen()
+            1 -> StudyModeScreen()
         }
     }
 }
