@@ -426,11 +426,23 @@ fun CommitTabScreen() {
                     )
                 }
             )
+            Tab(
+                selected = selectedCommitTab == 2,
+                onClick = { selectedCommitTab = 2 },
+                text = {
+                    Text(
+                        "Habits",
+                        color = if (selectedCommitTab == 2) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
         }
 
         when (selectedCommitTab) {
             0 -> FocusModeScreen()
             1 -> StudyModeScreen()
+            2 -> HabitTrackerScreen()
         }
     }
 }
