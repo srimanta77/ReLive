@@ -6,7 +6,7 @@
 ![Language](https://img.shields.io/badge/Language-Kotlin-purple?style=flat-square&logo=kotlin)
 ![Architecture](https://img.shields.io/badge/Architecture-MVVM-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
-![Phase](https://img.shields.io/badge/Phase-3%20Complete-brightgreen?style=flat-square)
+![Phase](https://img.shields.io/badge/Phase-5%20In%20Progress-brightgreen?style=flat-square)
 
 ---
 
@@ -18,15 +18,16 @@ ReLive is an AI-powered **Digital Wellbeing ecosystem** for Android that helps u
 - 👨‍👩‍👧 Enable **parental controls** with password protection
 - ⏱️ Set **daily screen time limits** with alerts
 - 📈 View **daily and weekly usage reports** with charts
-- 🔒 Block distracting apps during **focus/study/work modes** *(coming soon)*
-- 🧘 Build healthier habits through **AI coaching** *(coming soon)*
-- 💧 Track **health metrics** — water intake, sleep, mood *(coming soon)*
+- 🎯 Stay productive with **Focus Mode** and **Study Mode** (Pomodoro)
+- 💧 Track **water intake** with daily reminders
+- ✅ Build healthy routines with **Habit Tracker**
+- 🧘 AI coaching and health tracking *(coming soon)*
 
 Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link — combined into one intelligent platform.
 
 ---
 
-## ✨ Current Features (Phase 3 Complete)
+## ✨ Current Features (Phase 5 In Progress)
 
 ### 🏠 Home Screen
 - Material 3 dark navy theme
@@ -40,11 +41,17 @@ Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link
 - Encrypted password storage (EncryptedSharedPreferences)
 - Password change via Settings screen
 
-### 📊 Wellness Dashboard
-- **Dashboard tab** — Real-time today's screen time + app usage list
-- **Daily tab** — Full daily report with most used app, app count, progress bars
-- **Weekly tab** — 7-day bar chart, total week time, daily average
-- **Limits tab** — Set daily screen time goals (1h/2h/3h/4h), limit exceeded alerts
+### 📊 Wellness Tab
+- **Dashboard** — Real-time today's screen time + app usage list
+- **Daily Report** — Most used app, app count, progress bars
+- **Weekly Report** — 7-day bar chart, total week time, daily average
+- **Limits** — Set daily screen time goals (1h/2h/3h/4h), limit exceeded alerts
+- **Water** — Track daily water intake (8 glasses goal), hydration tips
+
+### 🎯 Commit Tab
+- **Focus Mode** — Pomodoro timer (25/5/15 min), sessions tracker, pulse animation
+- **Study Mode** — Subject tracker, custom goal (30/45/60/90 min), session history
+- **Habits** — Daily habit tracker with progress, add custom habits
 
 ### 🔧 Technical
 - Foreground Service with persistent notification
@@ -85,7 +92,9 @@ app/src/main/java/in/srimantamondal/relive/
 │
 ├── ui/
 │   ├── screens/     → HomeScreen, UsageDashboard, DailyReport,
-│   │                   WeeklyReport, ScreenTimeLimit, ParentModeSettings
+│   │                   WeeklyReport, ScreenTimeLimit, ParentModeSettings,
+│   │                   FocusModeScreen, StudyModeScreen, HabitTrackerScreen,
+│   │                   WaterReminderScreen
 │   ├── theme/       → Material 3 colors, typography
 │   ├── HomeViewModel.kt
 │   └── UsageStatsHelper.kt
@@ -109,8 +118,8 @@ app/src/main/java/in/srimantamondal/relive/
 | Phase 1 | Foundation, MVVM, Room, DataStore, Splash, Navigation | ✅ Complete |
 | Phase 2 | Parent Mode, Foreground Service, Security, Settings | ✅ Complete |
 | Phase 3 | Usage Tracking, Screen Time Dashboard, Daily/Weekly Reports, Limits | ✅ Complete |
-| Phase 4 | App Blocking, Focus Mode, Study Mode, AI Suggestions | 🔜 Next |
-| Phase 5 | Health System, Water, Sleep, Mood, Fitness | 📋 Planned |
+| Phase 4 | Focus Mode, Study Mode, Habit Tracker | ✅ Complete |
+| Phase 5 | Health System — Water Reminder, Sleep, Mood, Fitness | 🔄 In Progress |
 | Phase 6 | AI Coach, AI Therapist, AI Motivation | 📋 Planned |
 | Phase 7 | Firebase, Cloud Backup, Cross-device Sync | 📋 Planned |
 | Phase 8 | Testing, Optimization, Play Store Release | 📋 Planned |
