@@ -456,10 +456,11 @@ fun WellnessTabScreen() {
             .fillMaxSize()
             .background(NavyBg)
     ) {
-        TabRow(
+        ScrollableTabRow(
             selectedTabIndex = selectedWellnessTab,
             containerColor = Color(0xFF1C2541),
-            contentColor = PurpleAccent
+            contentColor = PurpleAccent,
+            edgePadding = 0.dp
         ) {
             Tab(
                 selected = selectedWellnessTab == 0,
@@ -468,7 +469,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Dashboard",
                         color = if (selectedWellnessTab == 0) PurpleAccent else TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -479,7 +480,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Daily",
                         color = if (selectedWellnessTab == 1) PurpleAccent else TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -490,7 +491,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Weekly",
                         color = if (selectedWellnessTab == 2) PurpleAccent else TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -501,7 +502,7 @@ fun WellnessTabScreen() {
                     Text(
                         "Limits",
                         color = if (selectedWellnessTab == 3) PurpleAccent else TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -512,7 +513,29 @@ fun WellnessTabScreen() {
                     Text(
                         "Water",
                         color = if (selectedWellnessTab == 4) PurpleAccent else TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedWellnessTab == 5,
+                onClick = { selectedWellnessTab = 5 },
+                text = {
+                    Text(
+                        "Sleep",
+                        color = if (selectedWellnessTab == 5) PurpleAccent else TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedWellnessTab == 6,
+                onClick = { selectedWellnessTab = 6 },
+                text = {
+                    Text(
+                        "Mood",
+                        color = if (selectedWellnessTab == 6) PurpleAccent else TextSecondary,
+                        fontSize = 11.sp
                     )
                 }
             )
@@ -524,6 +547,8 @@ fun WellnessTabScreen() {
             2 -> WeeklyReportScreen()
             3 -> ScreenTimeLimitScreen()
             4 -> WaterReminderScreen()
+            5 -> SleepTrackerScreen()
+            6 -> MoodTrackerScreen()
         }
     }
 }
