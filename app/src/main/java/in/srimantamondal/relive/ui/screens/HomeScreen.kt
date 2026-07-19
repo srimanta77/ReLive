@@ -539,6 +539,17 @@ fun WellnessTabScreen() {
                     )
                 }
             )
+            Tab(
+                selected = selectedWellnessTab == 7,
+                onClick = { selectedWellnessTab = 7 },
+                text = {
+                    Text(
+                        "BMI",
+                        color = if (selectedWellnessTab == 7) PurpleAccent else TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+            )
         }
 
         when (selectedWellnessTab) {
@@ -549,6 +560,7 @@ fun WellnessTabScreen() {
             4 -> WaterReminderScreen()
             5 -> SleepTrackerScreen()
             6 -> MoodTrackerScreen()
+            7 -> BMICalculatorScreen()
         }
     }
 }
