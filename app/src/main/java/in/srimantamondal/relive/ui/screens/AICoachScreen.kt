@@ -112,7 +112,7 @@ fun AICoachScreen() {
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("x-api-key", "YOUR_API_KEY_HERE")
+                connection.setRequestProperty("x-api-key", BuildConfig.ANTHROPIC_API_KEY)
                 connection.setRequestProperty("anthropic-version", "2023-06-01")
                 connection.doOutput = true
 
