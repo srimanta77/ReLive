@@ -399,10 +399,11 @@ fun CommitTabScreen() {
             .fillMaxSize()
             .background(NavyBg)
     ) {
-        TabRow(
+        ScrollableTabRow(
             selectedTabIndex = selectedCommitTab,
             containerColor = Color(0xFF1C2541),
-            contentColor = PurpleAccent
+            contentColor = PurpleAccent,
+            edgePadding = 0.dp
         ) {
             Tab(
                 selected = selectedCommitTab == 0,
@@ -437,12 +438,24 @@ fun CommitTabScreen() {
                     )
                 }
             )
+            Tab(
+                selected = selectedCommitTab == 3,
+                onClick = { selectedCommitTab = 3 },
+                text = {
+                    Text(
+                        "AI Coach",
+                        color = if (selectedCommitTab == 3) PurpleAccent else TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            )
         }
 
         when (selectedCommitTab) {
             0 -> FocusModeScreen()
             1 -> StudyModeScreen()
             2 -> HabitTrackerScreen()
+            3 -> AICoachScreen()
         }
     }
 }
