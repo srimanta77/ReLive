@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="in.srimantamondal.relive" />
+                  <option name="mobileSdkAppId" value="1:1077334540671:android:b7e8bfc0bf9b7fcc9ada4a" />
+                  <option name="projectId" value="relive-be19554d" />
+                  <option name="projectNumber" value="1077334540671" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

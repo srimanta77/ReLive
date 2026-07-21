@@ -10,9 +10,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
+import `in`.srimantamondal.relive.ui.screens.AuthScreen
 import `in`.srimantamondal.relive.ui.screens.HomeScreen
 import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
 
@@ -25,10 +28,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Status bar dark karo
         window.statusBarColor = android.graphics.Color.parseColor("#0B132B")
 
-        // Ask notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -45,7 +46,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF0B132B)
                 ) {
-                    HomeScreen()
+                    // Check if user already logged in
+                    var isLoggedIn by remember {
+                        mutableStateOf(FirebaseAuth.getInstance().currentUser != null)
+                    }
+
+                    if (isLoggedIn) {
+                        HomeScreen()
+                    } else {
+                        AuthScreen(
+                            onAuthSuccess = { isLoggedIn = true }
+                        )
+                    }
                 }
             }
         }

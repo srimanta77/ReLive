@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1077334540671",
+    "project_id": "relive-be19554d",
+    "storage_bucket": "relive-be19554d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077334540671:android:b7e8bfc0bf9b7fcc9ada4a",
+        "android_client_info": {
+          "package_name": "in.srimantamondal.relive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPPP4gSVx8WcYSSbPiHrdMvCQIm58-MqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
