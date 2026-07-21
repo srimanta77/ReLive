@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import `in`.srimantamondal.relive.BuildConfig
 import `in`.srimantamondal.relive.data.usage.AppUsageManager
 import `in`.srimantamondal.relive.ui.UsageStatsHelper
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +68,6 @@ fun AICoachScreen() {
         )
     }
 
-    // Load usage data
     LaunchedEffect(Unit) {
         val hasPermission = UsageStatsHelper.hasUsageStatsPermission(context)
         if (hasPermission) {
@@ -80,7 +80,6 @@ fun AICoachScreen() {
         }
     }
 
-    // Rotation animation for loading
     val infiniteTransition = rememberInfiniteTransition()
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -115,6 +114,8 @@ fun AICoachScreen() {
                 connection.setRequestProperty("x-api-key", BuildConfig.ANTHROPIC_API_KEY)
                 connection.setRequestProperty("anthropic-version", "2023-06-01")
                 connection.doOutput = true
+                connection.connectTimeout = 15000
+                connection.readTimeout = 15000
 
                 val body = JSONObject().apply {
                     put("model", "claude-sonnet-4-6")
@@ -132,13 +133,19 @@ fun AICoachScreen() {
                 writer.write(body)
                 writer.flush()
 
-                val response = connection.inputStream.bufferedReader().readText()
-                val json = JSONObject(response)
-                json.getJSONArray("content")
-                    .getJSONObject(0)
-                    .getString("text")
+                val responseCode = connection.responseCode
+                if (responseCode == 200) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    val json = JSONObject(response)
+                    json.getJSONArray("content")
+                        .getJSONObject(0)
+                        .getString("text")
+                } else {
+                    val error = connection.errorStream?.bufferedReader()?.readText()
+                    "Error $responseCode: Please check your API key. 🔑"
+                }
             } catch (e: Exception) {
-                "I'm having trouble connecting right now. Please check your internet connection and try again. 🔄"
+                "I'm having trouble connecting. Please check your internet connection. 🔄"
             }
         }
     }
@@ -190,7 +197,6 @@ fun AICoachScreen() {
             }
         }
 
-        // Quick suggestions
         if (chatHistory.size <= 1) {
             LazyColumn(
                 modifier = Modifier
@@ -199,7 +205,6 @@ fun AICoachScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    // Welcome card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = CardBg),
@@ -262,13 +267,11 @@ fun AICoachScreen() {
                 }
             }
         } else {
-            // Chat messages
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                reverseLayout = false
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(8.dp)) }
 
@@ -300,8 +303,7 @@ fun AICoachScreen() {
                         Card(
                             modifier = Modifier.widthIn(max = 280.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (message.isUser) PurpleAccent
-                                else CardBg
+                                containerColor = if (message.isUser) PurpleAccent else CardBg
                             ),
                             shape = RoundedCornerShape(
                                 topStart = if (message.isUser) 16.dp else 4.dp,
@@ -335,7 +337,9 @@ fun AICoachScreen() {
                                     Icons.Default.Psychology,
                                     contentDescription = null,
                                     tint = PurpleAccent,
-                                    modifier = Modifier.size(18.dp).rotate(rotation)
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .rotate(rotation)
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
@@ -375,7 +379,10 @@ fun AICoachScreen() {
                     value = userMessage,
                     onValueChange = { userMessage = it },
                     placeholder = {
-                        Text("Ask your AI Coach...", color = TextSecondary.copy(alpha = 0.5f))
+                        Text(
+                            "Ask your AI Coach...",
+                            color = TextSecondary.copy(alpha = 0.5f)
+                        )
                     },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -405,7 +412,9 @@ fun AICoachScreen() {
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (userMessage.isNotBlank()) PurpleAccent else CardBg)
+                        .background(
+                            if (userMessage.isNotBlank()) PurpleAccent else CardBg
+                        )
                 ) {
                     Icon(
                         Icons.Default.Send,
