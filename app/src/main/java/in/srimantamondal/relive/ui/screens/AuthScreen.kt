@@ -2,7 +2,9 @@ package `in`.srimantamondal.relive.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,7 +27,6 @@ private val CardBg = Color(0xFF1C2541)
 private val PurpleAccent = Color(0xFF7C4DFF)
 private val TextPrimary = Color(0xFFEEEEEE)
 private val TextSecondary = Color(0xFFB0BEC5)
-private val GreenAccent = Color(0xFF69F0AE)
 private val RedAccent = Color(0xFFFF5252)
 
 @Composable
@@ -41,16 +42,19 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
 
     val scope = rememberCoroutineScope()
     val auth = remember { FirebaseAuth.getInstance() }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(NavyBg)
+            .verticalScroll(scrollState)
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Logo / Title
+        Spacer(modifier = Modifier.height(60.dp))
+
+        // Logo
         Text("🧘", fontSize = 56.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -83,10 +87,7 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        "Login",
-                        color = if (isLoginMode) Color.White else TextSecondary
-                    )
+                    Text("Login", color = if (isLoginMode) Color.White else TextSecondary)
                 }
                 Button(
                     onClick = { isLoginMode = false; errorMessage = "" },
@@ -96,10 +97,7 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        "Sign Up",
-                        color = if (!isLoginMode) Color.White else TextSecondary
-                    )
+                    Text("Sign Up", color = if (!isLoginMode) Color.White else TextSecondary)
                 }
             }
         }
@@ -127,7 +125,7 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Email field
+        // Email
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -147,7 +145,7 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Password field
+        // Password
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -161,8 +159,7 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
             trailingIcon = {
                 IconButton(onClick = { showPassword = !showPassword }) {
                     Icon(
-                        if (showPassword) Icons.Default.VisibilityOff
-                        else Icons.Default.Visibility,
+                        if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = null,
                         tint = TextSecondary
                     )
@@ -199,7 +196,6 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
             )
         }
 
-        // Error message
         if (errorMessage.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -228,7 +224,6 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                     errorMessage = "Password must be at least 6 characters"
                     return@Button
                 }
-
                 isLoading = true
                 scope.launch {
                     try {
@@ -238,7 +233,6 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                             val result = auth.createUserWithEmailAndPassword(
                                 email.trim(), password
                             ).await()
-                            // Update display name
                             if (name.isNotBlank()) {
                                 val profileUpdates = com.google.firebase.auth
                                     .UserProfileChangeRequest.Builder()
@@ -250,10 +244,8 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                         onAuthSuccess()
                     } catch (e: Exception) {
                         errorMessage = when {
-                            e.message?.contains("email") == true ->
-                                "Invalid email address"
-                            e.message?.contains("password") == true ->
-                                "Wrong password"
+                            e.message?.contains("email") == true -> "Invalid email address"
+                            e.message?.contains("password") == true -> "Wrong password"
                             e.message?.contains("no user") == true ->
                                 "Account not found. Please sign up"
                             e.message?.contains("already in use") == true ->
@@ -288,13 +280,10 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Skip option
         TextButton(onClick = onAuthSuccess) {
-            Text(
-                "Skip for now →",
-                color = TextSecondary,
-                fontSize = 13.sp
-            )
+            Text("Skip for now →", color = TextSecondary, fontSize = 13.sp)
         }
+
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }

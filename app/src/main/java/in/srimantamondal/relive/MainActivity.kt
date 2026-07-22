@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     if (isLoggedIn) {
-                        HomeScreen()
+                        HomeScreen(onLogout = { isLoggedIn = false })
                     } else {
                         AuthScreen(
                             onAuthSuccess = { isLoggedIn = true }

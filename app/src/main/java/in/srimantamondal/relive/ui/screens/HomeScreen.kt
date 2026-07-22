@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Person
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.srimantamondal.relive.data.model.ActivityRecord
 import `in`.srimantamondal.relive.ui.HomeViewModel
@@ -44,7 +45,7 @@ private val DividerColor = Color(0xFF2A2A3E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}) {
     val activities by viewModel.activities.collectAsState(initial = emptyList())
     val parentMode by viewModel.parentMode.collectAsState(initial = false)
     val passwordExists by viewModel.passwordExists.collectAsState()
@@ -172,6 +173,19 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         indicatorColor = Color(0xFF2A2A3E)
                     )
                 )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                    label = { Text("Profile") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PurpleAccent,
+                        selectedTextColor = PurpleAccent,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = Color(0xFF2A2A3E)
+                    )
+                )
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -212,6 +226,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                 )
                 1 -> CommitTabScreen()
                 2 -> WellnessTabScreen()
+                3 -> ProfileScreen(onLogout = onLogout)
             }
         }
 
