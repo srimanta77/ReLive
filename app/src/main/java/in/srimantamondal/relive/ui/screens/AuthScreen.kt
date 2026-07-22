@@ -240,6 +240,8 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                                     .build()
                                 result.user?.updateProfile(profileUpdates)?.await()
                             }
+                            // Send email for verification user authentication
+                            result.user?.sendEmailVerification()?.await()
                         }
                         onAuthSuccess()
                     } catch (e: Exception) {
