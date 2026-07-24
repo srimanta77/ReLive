@@ -1,5 +1,11 @@
 package `in`.srimantamondal.relive.ui.screens
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,10 +19,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import `in`.srimantamondal.relive.data.model.UserProfile
+import `in`.srimantamondal.relive.data.repository.UserProfileRepository
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.io.ByteArrayOutputStream
 
 private val NavyBg = Color(0xFF0B132B)
 private val CardBg = Color(0xFF1C2541)
@@ -30,8 +44,34 @@ private val RedAccent = Color(0xFFFF5252)
 fun ProfileScreen(onLogout: () -> Unit) {
     val auth = remember { FirebaseAuth.getInstance() }
     val user = auth.currentUser
+    val repository = remember { UserProfileRepository() }
+    val scope = rememberCoroutineScope()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    // Firestore-synced profile (name + photo). Falls back to FirebaseAuth's
+    // own displayName/email until the first snapshot arrives.
+    var syncedProfile by remember { mutableStateOf<UserProfile?>(null) }
+    val photoBitmap = remember(syncedProfile?.photoBase64) {
+        syncedProfile?.photoBase64?.let { b64 ->
+            runCatching {
+                val bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }.getOrNull()
+        }
+    }
+    val displayName = syncedProfile?.name?.takeIf { it.isNotBlank() }
+        ?: user?.displayName ?: "ReLive User"
+
+    // Live listener -> updates on THIS device whenever the doc changes on
+    // any device signed into the same account (cross-device sync).
+    LaunchedEffect(user?.uid) {
+        val uid = user?.uid ?: return@LaunchedEffect
+        repository.observeProfile(uid).collect { profile ->
+            syncedProfile = profile
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -68,23 +108,48 @@ fun ProfileScreen(onLogout: () -> Unit) {
                             .background(PurpleAccent.copy(alpha = 0.2f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            (user?.displayName?.firstOrNull() ?: user?.email?.firstOrNull()
-                            ?: "U").toString().uppercase(),
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PurpleAccent
-                        )
+                        if (photoBitmap != null) {
+                            Image(
+                                bitmap = photoBitmap.asImageBitmap(),
+                                contentDescription = "Profile photo",
+                                modifier = Modifier.size(80.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                (displayName.firstOrNull() ?: user?.email?.firstOrNull()
+                                ?: "U").toString().uppercase(),
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PurpleAccent
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        user?.displayName ?: "ReLive User",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            displayName,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        IconButton(
+                            onClick = { showEditDialog = true },
+                            modifier = Modifier.size(22.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit profile",
+                                tint = PurpleAccent,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                     Text(
                         user?.email ?: "No email",
                         fontSize = 13.sp,
@@ -136,7 +201,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
                     ProfileInfoRow(
                         icon = Icons.Default.Person,
                         label = "Name",
-                        value = user?.displayName ?: "Not set"
+                        value = displayName
                     )
                     Divider(color = Color(0xFF2A2A3E))
                     ProfileInfoRow(
@@ -259,6 +324,146 @@ fun ProfileScreen(onLogout: () -> Unit) {
             }
         )
     }
+
+    // Edit profile dialog (name + photo)
+    if (showEditDialog && user != null) {
+        EditProfileDialog(
+            initialName = displayName,
+            initialBitmap = photoBitmap,
+            onDismiss = { showEditDialog = false },
+            onSave = { newName, newBitmap ->
+                scope.launch {
+                    val photoBase64 = newBitmap?.let { bitmapToBase64(it) }
+                        ?: syncedProfile?.photoBase64
+                    // Keep FirebaseAuth's own displayName in sync too, since
+                    // other parts of the app (and Firebase console) read it.
+                    val profileUpdates = com.google.firebase.auth
+                        .UserProfileChangeRequest.Builder()
+                        .setDisplayName(newName)
+                        .build()
+                    runCatching { user.updateProfile(profileUpdates).await() }
+                    runCatching {
+                        repository.saveProfile(
+                            uid = user.uid,
+                            name = newName,
+                            email = user.email ?: "",
+                            photoBase64 = photoBase64
+                        )
+                    }
+                    showEditDialog = false
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun EditProfileDialog(
+    initialName: String,
+    initialBitmap: Bitmap?,
+    onDismiss: () -> Unit,
+    onSave: (String, Bitmap?) -> Unit
+) {
+    var name by remember { mutableStateOf(initialName) }
+    var pickedBitmap by remember { mutableStateOf(initialBitmap) }
+    var isSaving by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val photoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            }.getOrNull()?.let { pickedBitmap = it }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { if (!isSaving) onDismiss() },
+        containerColor = CardBg,
+        title = { Text("Edit Profile", color = TextPrimary, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(PurpleAccent.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (pickedBitmap != null) {
+                        Image(
+                            bitmap = pickedBitmap!!.asImageBitmap(),
+                            contentDescription = "Selected photo",
+                            modifier = Modifier.size(72.dp).clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = PurpleAccent)
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(onClick = {
+                    photoPicker.launch(
+                        androidx.activity.result.PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }) {
+                    Text("Change Photo", color = PurpleAccent)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Full Name", color = TextSecondary) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PurpleAccent,
+                        unfocusedBorderColor = Color(0xFF2A2A3E),
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = name.isNotBlank() && !isSaving,
+                onClick = {
+                    isSaving = true
+                    onSave(name.trim(), pickedBitmap)
+                }
+            ) {
+                Text("Save", color = PurpleAccent, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { if (!isSaving) onDismiss() }) {
+                Text("Cancel", color = TextSecondary)
+            }
+        }
+    )
+}
+
+/** Downscales + compresses so the Base64 string stays well under Firestore's 1MB doc limit. */
+private fun bitmapToBase64(bitmap: Bitmap): String {
+    val maxDimension = 300
+    val scale = maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
+    val scaled = if (scale < 1f) {
+        Bitmap.createScaledBitmap(
+            bitmap,
+            (bitmap.width * scale).toInt().coerceAtLeast(1),
+            (bitmap.height * scale).toInt().coerceAtLeast(1),
+            true
+        )
+    } else bitmap
+    val stream = ByteArrayOutputStream()
+    scaled.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+    return android.util.Base64.encodeToString(stream.toByteArray(), android.util.Base64.DEFAULT)
 }
 
 @Composable
