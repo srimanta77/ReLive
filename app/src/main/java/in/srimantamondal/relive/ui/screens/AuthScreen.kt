@@ -30,7 +30,7 @@ private val TextSecondary = Color(0xFFB0BEC5)
 private val RedAccent = Color(0xFFFF5252)
 
 @Composable
-fun AuthScreen(onAuthSuccess: () -> Unit) {
+fun AuthScreen(onAuthSuccess: () -> Unit, onNeedsVerification: () -> Unit) {
     var isLoginMode by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -228,7 +228,17 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                 scope.launch {
                     try {
                         if (isLoginMode) {
-                            auth.signInWithEmailAndPassword(email.trim(), password).await()
+                            val result = auth.signInWithEmailAndPassword(
+                                email.trim(), password
+                            ).await()
+                            // Reload so a verification done on another device/session
+                            // isn't missed due to a stale cached flag.
+                            result.user?.reload()?.await()
+                            if (auth.currentUser?.isEmailVerified == true) {
+                                onAuthSuccess()
+                            } else {
+                                onNeedsVerification()
+                            }
                         } else {
                             val result = auth.createUserWithEmailAndPassword(
                                 email.trim(), password
@@ -242,8 +252,8 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                             }
                             // Send email for verification user authentication
                             result.user?.sendEmailVerification()?.await()
+                            onNeedsVerification()
                         }
-                        onAuthSuccess()
                     } catch (e: Exception) {
                         errorMessage = when {
                             e.message?.contains("email") == true -> "Invalid email address"
@@ -278,12 +288,6 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
                     fontSize = 16.sp
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(onClick = onAuthSuccess) {
-            Text("Skip for now →", color = TextSecondary, fontSize = 13.sp)
         }
 
         Spacer(modifier = Modifier.height(40.dp))

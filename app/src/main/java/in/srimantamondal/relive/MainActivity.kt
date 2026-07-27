@@ -16,8 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import `in`.srimantamondal.relive.ui.screens.AuthScreen
+import `in`.srimantamondal.relive.ui.screens.EmailVerificationScreen
 import `in`.srimantamondal.relive.ui.screens.HomeScreen
 import `in`.srimantamondal.relive.ui.theme.ReLiveTheme
+
+private enum class AuthState { LOGGED_OUT, NEEDS_VERIFICATION, LOGGED_IN }
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -46,16 +49,29 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF0B132B)
                 ) {
-                    // Check if user already logged in
-                    var isLoggedIn by remember {
-                        mutableStateOf(FirebaseAuth.getInstance().currentUser != null)
+                    // Auth state: logged out -> needs verification -> logged in
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    var authState by remember {
+                        mutableStateOf(
+                            when {
+                                currentUser == null -> AuthState.LOGGED_OUT
+                                currentUser.isEmailVerified -> AuthState.LOGGED_IN
+                                else -> AuthState.NEEDS_VERIFICATION
+                            }
+                        )
                     }
 
-                    if (isLoggedIn) {
-                        HomeScreen(onLogout = { isLoggedIn = false })
-                    } else {
-                        AuthScreen(
-                            onAuthSuccess = { isLoggedIn = true }
+                    when (authState) {
+                        AuthState.LOGGED_IN -> HomeScreen(
+                            onLogout = { authState = AuthState.LOGGED_OUT }
+                        )
+                        AuthState.NEEDS_VERIFICATION -> EmailVerificationScreen(
+                            onVerified = { authState = AuthState.LOGGED_IN },
+                            onLogout = { authState = AuthState.LOGGED_OUT }
+                        )
+                        AuthState.LOGGED_OUT -> AuthScreen(
+                            onAuthSuccess = { authState = AuthState.LOGGED_IN },
+                            onNeedsVerification = { authState = AuthState.NEEDS_VERIFICATION }
                         )
                     }
                 }
