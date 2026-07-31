@@ -6,7 +6,8 @@
 ![Language](https://img.shields.io/badge/Language-Kotlin-purple?style=flat-square&logo=kotlin)
 ![Architecture](https://img.shields.io/badge/Architecture-MVVM-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
-![Phase](https://img.shields.io/badge/Phase-7%20In%20Progress-brightgreen?style=flat-square)
+![Phase](https://img.shields.io/badge/Phase-8%20In%20Progress-brightgreen?style=flat-square)
+![Version](https://img.shields.io/badge/Version-2024.1.0-informational?style=flat-square)
 
 ---
 
@@ -28,15 +29,73 @@ Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link
 
 ---
 
-## Current Features (Phase 7 In Progress)
+## Screenshots
 
-### Account & Profile (Phase 7)
+<table>
+<tr>
+<td width="33%"><img src="screenshots/login.png" alt="Login"/></td>
+<td width="33%"><img src="screenshots/signup.png" alt="Sign Up"/></td>
+<td width="33%"><img src="screenshots/home.png" alt="Home"/></td>
+</tr>
+<tr>
+<td align="center"><b>Login</b></td>
+<td align="center"><b>Sign Up</b></td>
+<td align="center"><b>Home</b></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="33%"><img src="screenshots/focus-mode.png" alt="Focus Mode"/></td>
+<td width="33%"><img src="screenshots/study-mode.png" alt="Study Mode"/></td>
+<td width="33%"><img src="screenshots/ai-coach.png" alt="AI Coach"/></td>
+</tr>
+<tr>
+<td align="center"><b>Focus Mode</b></td>
+<td align="center"><b>Study Mode</b></td>
+<td align="center"><b>AI Coach</b></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="33%"><img src="screenshots/wellness-dashboard.png" alt="Wellness Dashboard"/></td>
+<td width="33%"><img src="screenshots/water-reminder.png" alt="Water Reminder"/></td>
+<td width="33%"><img src="screenshots/sleep-tracker.png" alt="Sleep Tracker"/></td>
+</tr>
+<tr>
+<td align="center"><b>Screen Time Dashboard</b></td>
+<td align="center"><b>Water Reminder</b></td>
+<td align="center"><b>Sleep Tracker</b></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="33%"><img src="screenshots/bmi-calculator.png" alt="BMI Calculator"/></td>
+<td width="33%"><img src="screenshots/profile.png" alt="Profile"/></td>
+<td width="33%"><img src="screenshots/about-dialog.png" alt="About"/></td>
+</tr>
+<tr>
+<td align="center"><b>BMI Calculator</b></td>
+<td align="center"><b>Profile</b></td>
+<td align="center"><b>About</b></td>
+</tr>
+</table>
+
+---
+
+## Current Features
+
+### Account & Profile
 ![Firebase](https://img.shields.io/badge/-Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Firestore](https://img.shields.io/badge/-Firestore-039BE5?style=flat-square&logo=firebase&logoColor=white)
 - Firebase Authentication — email/password signup and login
 - Mandatory email verification — unverified accounts are blocked from entering the app, with no bypass
+- Forgot Password — self-service reset via a Firebase email link
 - Editable profile — name and photo, synced to Firestore
 - Real-time cross-device sync — a change on one device updates live on another
 - Firestore security rules — each user can only read/write their own profile document
+- In-app About and Privacy & Security screens
 
 ### Home Screen
 - Material 3 dark navy theme
@@ -76,6 +135,7 @@ Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link
 - ProGuard/R8 code obfuscation for release builds
 - Usage Stats permission flow
 - Dark status bar integration
+- Adaptive app icon, custom branding
 
 ---
 
@@ -104,19 +164,19 @@ Room Database (SQLite) + DataStore   |   Firebase Auth + Firestore
 app/src/main/java/in/srimantamondal/relive/
 │
 ├── data/
-│   ├── db/          → Room Database, DAO
-│   ├── model/       → ActivityRecord, UserProfile
-│   ├── repository/  → ReLiveRepository, UserProfileRepository (Firestore)
-│   └── usage/       → AppUsageManager, ScreenTimeLimitManager
+│   ├── db/           → Room Database, DAO
+│   ├── model/        → ActivityRecord, UserProfile
+│   ├── repository/   → ReLiveRepository, UserProfileRepository (Firestore)
+│   └── usage/        → AppUsageManager, ScreenTimeLimitManager
 │
 ├── ui/
-│   ├── screens/     → HomeScreen, AuthScreen, EmailVerificationScreen,
-│   │                   ProfileScreen, UsageDashboard, DailyReport,
-│   │                   WeeklyReport, ScreenTimeLimit, ParentModeSettings,
-│   │                   FocusModeScreen, StudyModeScreen, HabitTrackerScreen,
-│   │                   WaterReminderScreen, SleepTrackerScreen,
-│   │                   MoodTrackerScreen, BMICalculatorScreen, AICoachScreen
-│   ├── theme/       → Material 3 colors, typography
+│   ├── screens/      → HomeScreen, AuthScreen, EmailVerificationScreen,
+│   │                    ProfileScreen, UsageDashboard, DailyReport,
+│   │                    WeeklyReport, ScreenTimeLimit, ParentModeSettings,
+│   │                    FocusModeScreen, StudyModeScreen, HabitTrackerScreen,
+│   │                    WaterReminderScreen, SleepTrackerScreen,
+│   │                    MoodTrackerScreen, BMICalculatorScreen, AICoachScreen
+│   ├── theme/        → Material 3 colors, typography
 │   ├── HomeViewModel.kt
 │   └── UsageStatsHelper.kt
 │
@@ -142,8 +202,8 @@ app/src/main/java/in/srimantamondal/relive/
 | Phase 4 | Focus Mode, Study Mode, Habit Tracker | Complete |
 | Phase 5 | Health System — Water Reminder, Sleep, Mood, BMI | Complete |
 | Phase 6 | AI Coach | Complete |
-| Phase 7 | Firebase Auth, Enforced Email Verification, Profile Editing, Firestore Cross-device Sync | In Progress |
-| Phase 8 | App Signing, Play Store Release | Planned |
+| Phase 7 | Firebase Auth, Enforced Email Verification, Forgot Password, Profile Editing, Firestore Cross-device Sync | Complete |
+| Phase 8 | App Signing, Custom Branding, Play Store Release | In Progress |
 
 ---
 
@@ -167,14 +227,17 @@ app/src/main/java/in/srimantamondal/relive/
 
 ## Getting Started
 
-### Prerequisites
+### Try it now
+Grab the latest signed APK from the [Releases](https://github.com/srimanta77/ReLive/releases) page and sideload it on any Android 7.0+ device — no Play Store account needed yet.
+
+### Build from source
+
+**Prerequisites**
 - Android Studio Hedgehog or later
 - Android SDK 34 (compileSdk / targetSdk)
 - Kotlin 2.0+
 - Min SDK: 24 (Android 7.0)
 - A Firebase project with Authentication (Email/Password) and Firestore enabled — add your own `google-services.json` under `app/`
-
-### Run Locally
 
 ```bash
 git clone https://github.com/srimanta77/ReLive.git
