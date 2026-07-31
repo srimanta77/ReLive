@@ -13,8 +13,8 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/relive_logo"
-        android:roundIcon="@drawable/relive_logo"
+        android:icon="@mipmap/relive_logo"
+        android:roundIcon="@mipmap/relive_logo_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.ReLive">

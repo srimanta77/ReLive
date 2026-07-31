@@ -1,12 +1,18 @@
 package `in`.srimantamondal.relive.ui.screens
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.Settings
+import `in`.srimantamondal.relive.BuildConfig
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -46,9 +52,12 @@ fun ProfileScreen(onLogout: () -> Unit) {
     val user = auth.currentUser
     val repository = remember { UserProfileRepository() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     // Firestore-synced profile (name + photo). Falls back to FirebaseAuth's
     // own displayName/email until the first snapshot arrives.
@@ -245,21 +254,34 @@ fun ProfileScreen(onLogout: () -> Unit) {
                         icon = Icons.Default.Notifications,
                         label = "Notifications",
                         iconTint = PurpleAccent,
-                        onClick = {}
+                        onClick = {
+                            val intent = if (android.os.Build.VERSION.SDK_INT >= 26) {
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                }
+                            } else {
+                                // Pre-Android 8: no per-app notification settings screen exists,
+                                // fall back to the general app details page.
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                            }
+                            context.startActivity(intent)
+                        }
                     )
                     Divider(color = Color(0xFF2A2A3E))
                     ProfileActionRow(
                         icon = Icons.Default.Security,
                         label = "Privacy & Security",
                         iconTint = PurpleAccent,
-                        onClick = {}
+                        onClick = { showPrivacyDialog = true }
                     )
                     Divider(color = Color(0xFF2A2A3E))
                     ProfileActionRow(
                         icon = Icons.Default.Info,
                         label = "About ReLive",
                         iconTint = PurpleAccent,
-                        onClick = {}
+                        onClick = { showAboutDialog = true }
                     )
                 }
             }
@@ -351,6 +373,166 @@ fun ProfileScreen(onLogout: () -> Unit) {
                         )
                     }
                     showEditDialog = false
+                }
+            }
+        )
+    }
+
+    // About dialog
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            containerColor = CardBg,
+            title = { Text("About ReLive", color = TextPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        "ReLive",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        "Your Digital Wellbeing Assistant",
+                        color = PurpleAccent,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        "ReLive helps you understand and manage how you use your phone. " +
+                                "It combines screen-time tracking, parental controls, focus and " +
+                                "study tools, and simple wellness tracking (water, sleep, mood, " +
+                                "BMI) with an AI coach — all in one place.",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text("What's inside", color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "Screen time dashboard, daily & weekly reports",
+                        "Parent Mode with encrypted password protection",
+                        "Focus Mode & Study Mode (Pomodoro-style timers)",
+                        "Water, sleep, mood & BMI tracking",
+                        "AI Coach for guidance",
+                        "Cloud-synced profile across devices"
+                    ).forEach {
+                        Text("•  $it", color = TextSecondary, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        "Developed by Srimanta Mondal",
+                        color = TextPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "github.com/srimanta77/ReLive",
+                        color = PurpleAccent,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "© 2026 Srimanta Mondal. All rights reserved.",
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Close", color = PurpleAccent, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    // Privacy & Security dialog
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            containerColor = CardBg,
+            title = { Text("Privacy & Security", color = TextPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        "What we collect",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "Account info: name, email, and profile photo (via Firebase Authentication)",
+                        "App usage data: screen time and app-open counts, read only with your explicit Usage Access permission",
+                        "Wellness entries you add yourself: water, sleep, mood, BMI, habits, focus/study sessions"
+                    ).forEach {
+                        Text("•  $it", color = TextSecondary, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        "How it's stored",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "Profile (name, email, photo) is stored in Cloud Firestore, secured by rules so only you can read or write your own document",
+                        "Screen time, habits, and wellness entries are stored locally on your device (Room database)",
+                        "Parent Mode password is stored using Android's EncryptedSharedPreferences, not in plain text"
+                    ).forEach {
+                        Text("•  $it", color = TextSecondary, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        "What we don't do",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "We don't sell or share your personal data with third parties",
+                        "We don't read the content of other apps — only aggregate usage time via Android's official Usage Access API",
+                        "You can revoke Usage Access anytime from your device Settings"
+                    ).forEach {
+                        Text("•  $it", color = TextSecondary, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        "Your controls",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "You can edit or delete your profile info anytime from this screen, " +
+                                "and sign out to stop sync on this device.",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyDialog = false }) {
+                    Text("Close", color = PurpleAccent, fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -497,6 +679,7 @@ fun ProfileActionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

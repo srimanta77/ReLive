@@ -1,5 +1,6 @@
 package `in`.srimantamondal.relive.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -19,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import `in`.srimantamondal.relive.R
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -39,6 +42,8 @@ fun AuthScreen(onAuthSuccess: () -> Unit, onNeedsVerification: () -> Unit) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    var showForgotPasswordDialog by remember { mutableStateOf(false) }
+    var forgotPasswordEmail by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
     val auth = remember { FirebaseAuth.getInstance() }
@@ -55,7 +60,11 @@ fun AuthScreen(onAuthSuccess: () -> Unit, onNeedsVerification: () -> Unit) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Logo
-        Text("🧘", fontSize = 56.sp)
+        Image(
+            painter = painterResource(id = R.drawable.relive_logo),
+            contentDescription = "ReLive logo",
+            modifier = Modifier.size(88.dp)
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             "ReLive",
@@ -174,6 +183,19 @@ fun AuthScreen(onAuthSuccess: () -> Unit, onNeedsVerification: () -> Unit) {
             shape = RoundedCornerShape(10.dp)
         )
 
+        // Forgot password (login mode only)
+        if (isLoginMode) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = {
+                    forgotPasswordEmail = email
+                    showForgotPasswordDialog = true
+                }) {
+                    Text("Forgot Password?", color = PurpleAccent, fontSize = 13.sp)
+                }
+            }
+        }
+
         // Confirm password (signup only)
         if (!isLoginMode) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -291,5 +313,79 @@ fun AuthScreen(onAuthSuccess: () -> Unit, onNeedsVerification: () -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+    }
+
+    // Forgot password dialog
+    if (showForgotPasswordDialog) {
+        var localError by remember { mutableStateOf("") }
+        var localSuccess by remember { mutableStateOf(false) }
+        var localLoading by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { showForgotPasswordDialog = false },
+            containerColor = CardBg,
+            title = { Text("Reset Password", color = TextPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(
+                        "Enter your account email — we'll send you a link to reset your password.",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = forgotPasswordEmail,
+                        onValueChange = { forgotPasswordEmail = it },
+                        label = { Text("Email", color = TextSecondary) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PurpleAccent,
+                            unfocusedBorderColor = Color(0xFF2A2A3E),
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        )
+                    )
+                    if (localError.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(localError, color = RedAccent, fontSize = 12.sp)
+                    }
+                    if (localSuccess) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Reset email sent. Check your inbox (and spam folder).",
+                            color = Color(0xFF69F0AE),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !localLoading && forgotPasswordEmail.isNotBlank(),
+                    onClick = {
+                        localLoading = true
+                        localError = ""
+                        scope.launch {
+                            try {
+                                auth.sendPasswordResetEmail(forgotPasswordEmail.trim()).await()
+                                localSuccess = true
+                            } catch (e: Exception) {
+                                localError = e.message ?: "Couldn't send reset email"
+                            } finally {
+                                localLoading = false
+                            }
+                        }
+                    }
+                ) {
+                    Text("Send Link", color = PurpleAccent, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showForgotPasswordDialog = false }) {
+                    Text("Close", color = TextSecondary)
+                }
+            }
+        )
     }
 }

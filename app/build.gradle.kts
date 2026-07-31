@@ -8,7 +8,8 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-// Load local.properties
+// Load local.properties (SDK path, API keys, and release signing credentials —
+// this file is gitignored and never committed)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -24,7 +25,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "2024.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField(
@@ -34,6 +35,18 @@ android {
         )
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFilePath = localProperties.getProperty("RELEASE_KEYSTORE_PATH", "")
+            if (storeFilePath.isNotBlank()) {
+                storeFile = file(storeFilePath)
+                storePassword = localProperties.getProperty("RELEASE_KEYSTORE_PASSWORD", "")
+                keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS", "")
+                keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD", "")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
@@ -41,6 +54,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
