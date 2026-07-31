@@ -40,7 +40,7 @@ local.properties
 .DS_Store
 
 # Google services (uncomment if you don't want to track it)
- google-services.json
+google-services.json
 
 # Kotlin
 .kotlin/
