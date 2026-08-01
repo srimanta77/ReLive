@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="screenshots/relive-banner.png" alt="ReLive Banner" width="100%"/>
+</p>
+
 # ReLive — Digital Wellbeing & Parental Control App
 
 > Reclaim control over technology. Build healthier digital habits.
@@ -8,6 +12,24 @@
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
 ![Phase](https://img.shields.io/badge/Phase-8%20In%20Progress-brightgreen?style=flat-square)
 ![Version](https://img.shields.io/badge/Version-2024.1.0-informational?style=flat-square)
+![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square)
+
+---
+
+## Table of Contents
+- [Overview](#overview)
+- [Account & Profile](#account--profile)
+- [Home & Parent Mode](#home--parent-mode)
+- [Wellness Tab](#wellness-tab)
+- [Commit Tab & AI Coach](#commit-tab--ai-coach)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Development Roadmap](#development-roadmap)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Known Limitations](#known-limitations)
+- [Developer](#developer)
+- [License](#license)
 
 ---
 
@@ -29,33 +51,48 @@ Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link
 
 ---
 
-## Screenshots
+## Account & Profile
+![Firebase](https://img.shields.io/badge/-Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Firestore](https://img.shields.io/badge/-Firestore-039BE5?style=flat-square&logo=firebase&logoColor=white)
+
+Email/password authentication with mandatory email verification — accounts can't skip this step, so every user in the system is confirmed to own the email they signed up with. Forgot Password is handled through Firebase's own reset-link flow. Profile name and photo are editable and synced to Cloud Firestore in real time, so a change made on one device shows up on another instantly. Firestore security rules restrict every profile document to its own owner.
 
 <table>
 <tr>
 <td width="33%"><img src="screenshots/login.png" alt="Login"/></td>
 <td width="33%"><img src="screenshots/signup.png" alt="Sign Up"/></td>
-<td width="33%"><img src="screenshots/home.png" alt="Home"/></td>
+<td width="33%"><img src="screenshots/profile.png" alt="Profile"/></td>
 </tr>
 <tr>
-<td align="center"><b>Login</b></td>
-<td align="center"><b>Sign Up</b></td>
-<td align="center"><b>Home</b></td>
+<td align="center">Login with Forgot Password</td>
+<td align="center">Sign Up</td>
+<td align="center">Editable Profile</td>
 </tr>
 </table>
 
+---
+
+## Home & Parent Mode
+![Security](https://img.shields.io/badge/-Security-4CAF50?style=flat-square&logo=shieldsdotio&logoColor=white)
+
+The home screen gives a quick activity log and a Parent Mode toggle. Parent Mode is protected by a password hashed with SHA-256 and stored via Android's EncryptedSharedPreferences (never in plain text), and runs as a Foreground Service with a persistent notification while active.
+
 <table>
 <tr>
-<td width="33%"><img src="screenshots/focus-mode.png" alt="Focus Mode"/></td>
-<td width="33%"><img src="screenshots/study-mode.png" alt="Study Mode"/></td>
-<td width="33%"><img src="screenshots/ai-coach.png" alt="AI Coach"/></td>
+<td width="50%"><img src="screenshots/home.png" alt="Home"/></td>
+<td width="50%"><img src="screenshots/about-dialog.png" alt="About"/></td>
 </tr>
 <tr>
-<td align="center"><b>Focus Mode</b></td>
-<td align="center"><b>Study Mode</b></td>
-<td align="center"><b>AI Coach</b></td>
+<td align="center">Home Screen</td>
+<td align="center">About ReLive</td>
 </tr>
 </table>
+
+---
+
+## Wellness Tab
+![Analytics](https://img.shields.io/badge/-Analytics-673AB7?style=flat-square&logo=googleanalytics&logoColor=white)
+
+A real-time screen time dashboard (today's total, per-app breakdown) sits alongside daily/weekly report views and configurable screen-time limits. Beyond screen time, this tab also covers simple wellness tracking — water intake, sleep, mood, and BMI — read directly from Android's official Usage Access API, nothing scraped or inferred.
 
 <table>
 <tr>
@@ -64,78 +101,39 @@ Inspired by Google Digital Wellbeing, Apple Screen Time, Forest, and Family Link
 <td width="33%"><img src="screenshots/sleep-tracker.png" alt="Sleep Tracker"/></td>
 </tr>
 <tr>
-<td align="center"><b>Screen Time Dashboard</b></td>
-<td align="center"><b>Water Reminder</b></td>
-<td align="center"><b>Sleep Tracker</b></td>
+<td align="center">Screen Time Dashboard</td>
+<td align="center">Water Reminder</td>
+<td align="center">Sleep Tracker</td>
 </tr>
 </table>
 
 <table>
 <tr>
 <td width="33%"><img src="screenshots/bmi-calculator.png" alt="BMI Calculator"/></td>
-<td width="33%"><img src="screenshots/profile.png" alt="Profile"/></td>
-<td width="33%"><img src="screenshots/about-dialog.png" alt="About"/></td>
 </tr>
 <tr>
-<td align="center"><b>BMI Calculator</b></td>
-<td align="center"><b>Profile</b></td>
-<td align="center"><b>About</b></td>
+<td align="center">BMI Calculator</td>
 </tr>
 </table>
 
 ---
 
-## Current Features
+## Commit Tab & AI Coach
 
-### Account & Profile
-![Firebase](https://img.shields.io/badge/-Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) ![Firestore](https://img.shields.io/badge/-Firestore-039BE5?style=flat-square&logo=firebase&logoColor=white)
-- Firebase Authentication — email/password signup and login
-- Mandatory email verification — unverified accounts are blocked from entering the app, with no bypass
-- Forgot Password — self-service reset via a Firebase email link
-- Editable profile — name and photo, synced to Firestore
-- Real-time cross-device sync — a change on one device updates live on another
-- Firestore security rules — each user can only read/write their own profile document
-- In-app About and Privacy & Security screens
+Focus Mode and Study Mode bring Pomodoro-style timers with session history, and a daily Habit Tracker keeps recurring goals visible. The AI Coach ties it together — a conversational assistant that can reference your screen time and wellness data to give grounded suggestions rather than generic advice.
 
-### Home Screen
-- Material 3 dark navy theme
-- Parent Mode toggle with password protection
-- Activity tracking system (add, view)
-- Settings access via gear icon
-
-### Parent Mode
-![Security](https://img.shields.io/badge/-Security-4CAF50?style=flat-square&logo=shieldsdotio&logoColor=white)
-- SHA-256 password hashing
-- Foreground Service with persistent notification
-- Encrypted password storage (EncryptedSharedPreferences)
-- Password change via Settings screen
-
-### Wellness Tab
-![Analytics](https://img.shields.io/badge/-Analytics-673AB7?style=flat-square&logo=googleanalytics&logoColor=white)
-- Dashboard — real-time today's screen time and app usage list
-- Daily Report — most used app, app count, progress bars
-- Weekly Report — 7-day bar chart, total week time, daily average
-- Limits — daily screen time goals (1h/2h/3h/4h), limit-exceeded alerts
-- Water Reminder — daily water intake tracking (8-glass goal), hydration tips
-- Sleep Tracker — log and review sleep patterns
-- Mood Tracker — daily mood logging and trends
-- BMI Calculator — fitness/health snapshot
-
-### Commit Tab
-- Focus Mode — Pomodoro timer (25/5/15 min), session tracker, pulse animation
-- Study Mode — subject tracker, custom goal (30/45/60/90 min), session history
-- Habits — daily habit tracker with progress, custom habits
-
-### AI Coach
-![AI](https://img.shields.io/badge/-AI%20Powered-FF6F00?style=flat-square&logo=openai&logoColor=white)
-- Conversational guidance layered on top of the wellness data above
-
-### Technical
-- Foreground Service with persistent notification
-- ProGuard/R8 code obfuscation for release builds
-- Usage Stats permission flow
-- Dark status bar integration
-- Adaptive app icon, custom branding
+<table>
+<tr>
+<td width="33%"><img src="screenshots/focus-mode.png" alt="Focus Mode"/></td>
+<td width="33%"><img src="screenshots/study-mode.png" alt="Study Mode"/></td>
+<td width="33%"><img src="screenshots/ai-coach.png" alt="AI Coach"/></td>
+</tr>
+<tr>
+<td align="center">Focus Mode</td>
+<td align="center">Study Mode</td>
+<td align="center">AI Coach</td>
+</tr>
+</table>
 
 ---
 
@@ -227,8 +225,11 @@ app/src/main/java/in/srimantamondal/relive/
 
 ## Getting Started
 
-### Try it now
-Grab the latest signed APK from the [Releases](https://github.com/srimanta77/ReLive/releases) page and sideload it on any Android 7.0+ device — no Play Store account needed yet.
+### Install the app (no build required)
+1. Go to the [Releases](https://github.com/srimanta77/ReLive/releases) page and download the latest `app-release.apk`
+2. On your Android phone, go to **Settings → Apps → Special access → Install unknown apps**, and allow it for the browser or Files app you'll install from
+3. Open the downloaded APK file and tap **Install**
+4. Launch ReLive and sign up
 
 ### Build from source
 
@@ -253,6 +254,14 @@ cd ReLive
 
 ---
 
+## Known Limitations
+
+- Not yet published on Google Play — Phase 8 (signing, listing, submission) is in progress
+- Verification/reset emails currently send from Firebase's default sender and may land in spam until a custom domain sender is configured
+- AI Coach responses depend on an external API key configured at build time
+
+---
+
 ## Developer
 
 **Srimanta Mondal**
@@ -266,5 +275,6 @@ Teaches Cybersecurity & Digital Forensics | Android Developer | Entrepreneur
 
 ## License
 
-This project is under active development.
-© 2026 Srimanta Mondal. All rights reserved.
+© 2026 Srimanta Mondal. All Rights Reserved.
+
+This repository is public for portfolio and educational viewing only. See [LICENSE](LICENSE) for full terms — copying, modifying, or redistributing this code without written permission is not allowed.
